@@ -30,6 +30,7 @@ const apiGetRate = async period => {
 };
 
 const getPBRates = (request, response) => {
+  console.log("Request received.Now loading...");
   const period = getDatesRange();
 
   apiGetRate(period).then(
