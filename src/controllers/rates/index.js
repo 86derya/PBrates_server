@@ -1,34 +1,42 @@
 const axios = require("axios");
+const rax = require("retry-axios");
 
-getFormatedDate = (offSet = 0) => {
+const interceptorId = rax.attach(); //429 error
+
+const pbRatesBaseUrl =
+  "https://api.privatbank.ua/p24api/exchange_rates?json&date=";
+
+const getFormatedDate = (offSet = 0) => {
   const date = new Date(Date.now() - offSet * 24 * 3600 * 1000);
   return `${date.getDate()}.${date.getMonth()}.${date.getFullYear()}`;
 };
 
-getDatesRange = (daysBefore = 7) => {
+const getDatesRange = (daysBeforeToday = 7) => {
   let requiredDatesRange = [];
-  for (i = 0; i < daysBefore; i++) {
+  for (i = 0; i < daysBeforeToday; i++) {
     requiredDatesRange.push(getFormatedDate(i));
   }
   return requiredDatesRange;
 };
 
-const apiGetRateOnDate = date =>
-  axios
-    .get("https://api.privatbank.ua/p24api/exchange_rates?json&date=" + date)
-    .then(res => res.data);
+const apiGetRate = async period => {
+  const promises = period.map(async day => {
+    let res = await axios.get(pbRatesBaseUrl + day);
+    return res.data;
+  });
+
+  const results = await Promise.all(promises);
+  return results;
+};
 
 const getPBRates = (request, response) => {
   const period = getDatesRange();
-  let gotResults = [];
-  console.log(period);
 
-  Promise.all(period.map(i => gotResults.push(apiGetRateOnDate(i)))).then(() =>
-    console.log(gotResults)
+  apiGetRate(period).then(
+    res => (
+      response.set("Content-Type", "application/json"), response.send(res)
+    )
   );
 };
-
-// response.set("Content-Type", "application/json"),
-//   response.send(resp.data)
 
 module.exports = getPBRates;

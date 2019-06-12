@@ -16,6 +16,7 @@
     "morgan": "^1.9.1",
     "multer": "^1.4.0",
     "node-datetime": "^2.1.2",
-    "nodemon": "^1.18.4"
+    "nodemon": "^1.18.4",
+    "retry-axios": "^1.0.1"
   }
 }
